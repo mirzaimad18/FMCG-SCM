@@ -201,7 +201,7 @@ def test_zone_fallback_when_no_exact_region_match(sample_warehouses):
     """
     order = {
         "store_id": "STORE-W3",
-        "region": "West Zone B",  # not in regions_served, but zone "West" exists
+        "region": "West Central",  # not in regions_served, but zone "West" exists
         "sku": "PARLE-G-250G",
         "quantity_requested": 100,
     }
