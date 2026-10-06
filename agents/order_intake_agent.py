@@ -1,10 +1,11 @@
+# Connects to the live Firestore database "velochaindb001" in project velochain-509610.
 """
 Order Intake Agent for Parle-G Supply Chain Engine.
 ===================================================
 This module is Agent #1 in the Agentic AI Supply Chain Engine for Parle-G.
-It reads incoming retail orders from a local JSON file (data/orders.json)
-and deterministically assigns priority tiers and priority scores based on
-business rules.
+It reads incoming retail orders from the live Firestore database ("velochaindb001"
+in project velochain-509610, collection "orders") and deterministically assigns
+priority tiers and priority scores based on business rules.
 
 Business Priority Rules:
 ------------------------
@@ -41,6 +42,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+from google.cloud import firestore
+
 # Set up logger for the order intake agent
 logger = logging.getLogger("order_intake_agent")
 if not logger.handlers:
@@ -64,9 +67,31 @@ KNOWN_CUSTOMER_TIERS: Dict[str, int] = {
 UNKNOWN_CUSTOMER_TIER: int = 5
 
 
+def load_orders_from_firestore(database: str = "velochaindb001") -> List[Dict[str, Any]]:
+    """
+    Loads retail orders from the 'orders' collection in Firestore database 'velochaindb001'.
+
+    Parameters:
+    -----------
+    database : str
+        Firestore database name (default: "velochaindb001").
+
+    Returns:
+    --------
+    List[Dict[str, Any]]
+        A list of order dictionaries loaded from Firestore.
+    """
+    logger.info(f"Connecting to Firestore database '{database}' (collection: 'orders')...")
+    db = firestore.Client(database="velochaindb001")
+    docs = db.collection("orders").stream()
+    orders: List[Dict[str, Any]] = [doc.to_dict() for doc in docs]
+    logger.info(f"Successfully loaded {len(orders)} orders from Firestore.")
+    return orders
+
+
 def get_default_data_path() -> Path:
     """
-    Locates the default orders.json file path.
+    Locates the default orders.json file path for local file-based fallbacks.
     
     Checks:
     1. 'data/orders.json' relative to current working directory
@@ -87,17 +112,18 @@ def get_default_data_path() -> Path:
 
 def load_orders(file_path: Optional[str | Path] = None) -> List[Dict[str, Any]]:
     """
-    Loads retail orders from a JSON file.
+    Loads retail orders. By default, loads from live Firestore collection 'orders'.
+    If file_path is explicitly provided, loads from the specified local JSON file (useful for unit testing).
 
     Parameters:
     -----------
     file_path : Optional[str | Path]
-        Path to the JSON file containing orders. If None, uses default data/orders.json.
+        Path to a JSON file containing orders. If None, loads from Firestore.
 
     Returns:
     --------
     List[Dict[str, Any]]
-        A list of order dictionaries parsed from the JSON file.
+        A list of order dictionaries.
 
     Raises:
     -------
@@ -107,9 +133,9 @@ def load_orders(file_path: Optional[str | Path] = None) -> List[Dict[str, Any]]:
         If the JSON file contains invalid JSON or is not a list.
     """
     if file_path is None:
-        target_path = get_default_data_path()
-    else:
-        target_path = Path(file_path)
+        return load_orders_from_firestore()
+
+    target_path = Path(file_path)
 
     if not target_path.exists():
         error_msg = f"Orders file not found at: {target_path}"

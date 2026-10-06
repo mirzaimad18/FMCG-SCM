@@ -1,74 +1,92 @@
 [
   {
-    "store_id": "STORE-GOV-01",
-    "region": "West",
+    "store_id": "S1",
+    "region": "Kanpur East",
     "customer_type": "Government",
-    "sku": "PARLE-G-250G",
-    "quantity_requested": 1000,
-    "order_timestamp": "2026-09-25T08:00:00Z",
-    "current_stock_level": 0
-  },
-  {
-    "store_id": "STORE-NGO-02",
-    "region": "North",
-    "customer_type": "NGO",
-    "sku": "PARLE-G-100G",
+    "sku": "PG-100G",
     "quantity_requested": 500,
-    "order_timestamp": "2026-09-25T08:15:00Z",
-    "current_stock_level": 0
+    "order_timestamp": "2026-09-25T09:00:00",
+    "current_stock_level": null
   },
   {
-    "store_id": "STORE-LOY-03",
-    "region": "South",
+    "store_id": "S2",
+    "region": "Kanpur Central",
+    "customer_type": "NGO",
+    "sku": "PG-200G",
+    "quantity_requested": 1000,
+    "order_timestamp": "2026-09-25T09:05:00",
+    "current_stock_level": null
+  },
+  {
+    "store_id": "S3",
+    "region": "Kanpur South",
     "customer_type": "Loyal",
-    "sku": "PARLE-G-800G",
+    "sku": "PG-100G",
     "quantity_requested": 300,
-    "order_timestamp": "2026-09-25T08:30:00Z",
-    "current_stock_level": 0
+    "order_timestamp": "2026-09-25T09:10:00",
+    "current_stock_level": null
   },
   {
-    "store_id": "STORE-REG-04",
-    "region": "West",
+    "store_id": "S4",
+    "region": "Kanpur West",
     "customer_type": "Regular",
-    "sku": "PARLE-G-250G",
-    "quantity_requested": 200,
-    "order_timestamp": "2026-09-25T09:00:00Z",
+    "sku": "PG-100G",
+    "quantity_requested": 150,
+    "order_timestamp": "2026-09-25T09:15:00",
+    "current_stock_level": 20
+  },
+  {
+    "store_id": "S5",
+    "region": "Lucknow Central",
+    "customer_type": "Regular",
+    "sku": "PG-200G",
+    "quantity_requested": 100,
+    "order_timestamp": "2026-09-25T09:20:00",
     "current_stock_level": 5
   },
   {
-    "store_id": "STORE-REG-05",
-    "region": "East",
+    "store_id": "S6",
+    "region": "Lucknow East",
     "customer_type": "Regular",
-    "sku": "PARLE-G-250G",
-    "quantity_requested": 150,
-    "order_timestamp": "2026-09-25T07:45:00Z",
-    "current_stock_level": 25
-  },
-  {
-    "store_id": "STORE-REG-06",
-    "region": "North",
-    "customer_type": "Regular",
-    "sku": "PARLE-G-250G",
-    "quantity_requested": 100,
-    "order_timestamp": "2026-09-25T10:30:00Z",
-    "current_stock_level": 25
-  },
-  {
-    "store_id": "STORE-REG-07",
-    "region": "South",
-    "customer_type": "Regular",
-    "sku": "PARLE-G-100G",
-    "quantity_requested": 50,
-    "order_timestamp": "2026-09-25T09:15:00Z",
+    "sku": "PG-100G",
+    "quantity_requested": 200,
+    "order_timestamp": "2026-09-25T09:25:00",
     "current_stock_level": 90
   },
   {
-    "store_id": "STORE-UNK-08",
-    "region": "West",
-    "customer_type": "Wholesale",
-    "sku": "PARLE-G-500G",
-    "quantity_requested": 80,
-    "order_timestamp": "2026-09-25T11:00:00Z",
-    "current_stock_level": 10
+    "store_id": "S7",
+    "region": "Delhi North",
+    "customer_type": "Government",
+    "sku": "PG-200G",
+    "quantity_requested": 2000,
+    "order_timestamp": "2026-09-25T09:30:00",
+    "current_stock_level": null
+  },
+  {
+    "store_id": "S8",
+    "region": "Delhi South",
+    "customer_type": "NGO",
+    "sku": "PG-100G",
+    "quantity_requested": 5000,
+    "order_timestamp": "2026-09-25T09:35:00",
+    "current_stock_level": null
+  },
+  {
+    "store_id": "S9",
+    "region": "Kanpur East",
+    "customer_type": "Loyal",
+    "sku": "PG-200G",
+    "quantity_requested": 20000,
+    "order_timestamp": "2026-09-25T09:40:00",
+    "current_stock_level": null
+  },
+  {
+    "store_id": "S10",
+    "region": "Mumbai Central",
+    "customer_type": "Regular",
+    "sku": "PG-100G",
+    "quantity_requested": 100,
+    "order_timestamp": "2026-09-25T09:45:00",
+    "current_stock_level": 15
   }
 ]

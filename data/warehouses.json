@@ -1,27 +1,58 @@
 [
   {
-    "warehouse_id": "WH-WEST-01",
-    "region_served": "West",
+    "warehouse_id": "WH-KNP-01",
+    "zone": "Kanpur",
+    "regions_served": [
+      "Kanpur East",
+      "Kanpur North"
+    ],
     "stock_per_sku": {
-      "PARLE-G-250G": 5000,
-      "PARLE-G-100G": 8000,
-      "PARLE-G-800G": 3000
-    }
+      "PG-100G": 12000,
+      "PG-200G": 4000
+    },
+    "incoming_orders_count": 0,
+    "outgoing_orders_count": 0
   },
   {
-    "warehouse_id": "WH-NORTH-01",
-    "region_served": "North",
+    "warehouse_id": "WH-KNP-02",
+    "zone": "Kanpur",
+    "regions_served": [
+      "Kanpur South",
+      "Kanpur West"
+    ],
     "stock_per_sku": {
-      "PARLE-G-100G": 1000,
-      "PARLE-G-250G": 50
-    }
+      "PG-100G": 5000,
+      "PG-200G": 8000
+    },
+    "incoming_orders_count": 0,
+    "outgoing_orders_count": 0
   },
   {
-    "warehouse_id": "WH-SOUTH-01",
-    "region_served": "South",
+    "warehouse_id": "WH-LKO-01",
+    "zone": "Lucknow",
+    "regions_served": [
+      "Lucknow Central",
+      "Lucknow East"
+    ],
     "stock_per_sku": {
-      "PARLE-G-800G": 2000,
-      "PARLE-G-100G": 4000
-    }
+      "PG-100G": 15000,
+      "PG-200G": 2000
+    },
+    "incoming_orders_count": 0,
+    "outgoing_orders_count": 0
+  },
+  {
+    "warehouse_id": "WH-DEL-01",
+    "zone": "Delhi",
+    "regions_served": [
+      "Delhi North",
+      "Delhi South"
+    ],
+    "stock_per_sku": {
+      "PG-100G": 20000,
+      "PG-200G": 10000
+    },
+    "incoming_orders_count": 0,
+    "outgoing_orders_count": 0
   }
 ]

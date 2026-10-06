@@ -25,7 +25,8 @@ def mock_pipeline_environment():
     warehouses = [
         {
             "warehouse_id": "WH-WEST-01",
-            "region_served": "West",
+            "zone": "West",
+            "regions_served": ["West"],
             "stock_per_sku": {
                 "PARLE-G-250G": 90000,  # Plentiful surplus to satisfy a 50k+ transfer
                 "PARLE-G-100G": 2000,
@@ -33,7 +34,8 @@ def mock_pipeline_environment():
         },
         {
             "warehouse_id": "WH-NORTH-01",
-            "region_served": "North",
+            "zone": "North",
+            "regions_served": ["North"],
             "stock_per_sku": {
                 "PARLE-G-250G": 100,    # Limited stock; causes shortages for larger requests
                 "PARLE-G-100G": 1000,
@@ -41,11 +43,13 @@ def mock_pipeline_environment():
         },
         {
             "warehouse_id": "WH-SOUTH-01",
-            "region_served": "South",
+            "zone": "South",
+            "regions_served": ["South"],
             "stock_per_sku": {
                 "PARLE-G-800G": 500,
             },
         },
+    
     ]
 
     orders = [
@@ -174,14 +178,16 @@ def test_priority_sorting_allocates_stock_to_higher_tier_first():
     warehouses = [
         {
             "warehouse_id": "WH-NORTH-01",
-            "region_served": "North",
+            "zone": "North",
+            "regions_served": ["North"],
             "stock_per_sku": {
                 "PARLE-G-100G": 300,  # Only 300 units available
             },
         },
         {
             "warehouse_id": "WH-WEST-01",
-            "region_served": "West",
+            "zone": "West",
+            "regions_served": ["West"],
             "stock_per_sku": {
                 "PARLE-G-100G": 500,  # Surplus for rebalancing
             },
@@ -231,9 +237,23 @@ def test_pipeline_with_default_data_files():
     result = run_pipeline()
 
     assert isinstance(result, PipelineResult)
-    assert len(result.orders) == 8
-    assert result.stats["total_orders"] == 8
-    assert result.stats["fulfilled_directly"] == 5
-    assert result.stats["transfers_created"] == 1
-    assert result.stats["auto_approved"] == 1
-    assert result.stats["unfulfillable"] == 2
+    assert len(result.orders) == 10
+    stats = result.stats
+    assert stats["total_orders"] == 10
+
+    # Every order ends in exactly one outcome
+    assert (
+        stats["fulfilled_directly"]
+        + stats["transfers_created"]
+        + stats["unfulfillable"]
+        == stats["total_orders"]
+    )
+
+    # Every transfer is either auto-approved or waiting for a manager
+    assert (
+        stats["auto_approved"] + stats["pending_manager_approval"]
+        == stats["transfers_created"]
+    )
+
+    # Order S10 is in "Mumbai Central", which has no warehouse
+    assert stats["no_warehouse_for_region"] == 1

@@ -130,15 +130,18 @@ def run_pipeline(
         - transfers: Final list of evaluated transfer requests.
         - stats: Summary statistics dictionary.
     """
+    # Determine if this is a live pipeline execution before loading defaults
+    is_live_run = (orders is None and warehouses is None)
+
     # -------------------------------------------------------------------------
     # STEP 1: Load Data
     # -------------------------------------------------------------------------
-    # Load orders from data/orders.json and warehouses from data/warehouses.json
+    # Load orders and warehouses (defaults to live Firestore collections)
     if orders is None:
-        logger.info("Loading orders from data/orders.json...")
+        logger.info("Loading orders (default: Firestore 'orders' collection)...")
         orders = load_orders()
     if warehouses is None:
-        logger.info("Loading warehouses from data/warehouses.json...")
+        logger.info("Loading warehouses (default: Firestore 'warehouses' collection)...")
         warehouses = load_warehouses()
 
     # Create deep copies of warehouses and orders to ensure clean state
@@ -176,7 +179,11 @@ def run_pipeline(
     # -------------------------------------------------------------------------
     # Filters for orders where routing_status == "insufficient_stock".
     # Creates inter-warehouse transfer requests from surplus warehouses.
-    rebalance_result = rebalance_orders(orders=routed_orders, warehouses=working_warehouses)
+    rebalance_result = rebalance_orders(
+        orders=routed_orders,
+        warehouses=working_warehouses,
+        sync_to_firestore=is_live_run,
+    )
     rebalanced_orders = rebalance_result.orders
     raw_transfers = rebalance_result.transfers
 
@@ -185,7 +192,8 @@ def run_pipeline(
     # -------------------------------------------------------------------------
     # Checks transfer sizes: quantity < 50,000 -> auto_approved;
     # quantity >= 50,000 -> pending_manager_approval.
-    evaluated_transfers = evaluate_transfers(raw_transfers)
+    # Writes evaluated status back to matching document in Firestore if live run.
+    evaluated_transfers = evaluate_transfers(raw_transfers, sync_to_firestore=is_live_run)
 
     # Index transfers by transfer_id for fast lookup in Step 7
     transfers_by_id = {t["transfer_id"]: t for t in evaluated_transfers}
