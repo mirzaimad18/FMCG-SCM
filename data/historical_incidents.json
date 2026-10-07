@@ -1,0 +1,92 @@
+[
+  {
+    "incident_id": "INC-001",
+    "title": "Unserviced Region - Order rejected due to missing regional warehouse",
+    "category": "Regional Coverage & Routing",
+    "symptoms": "Order marked with final_routing_outcome 'no warehouse for region', customer SLA missed, zero inventory assigned.",
+    "root_cause": "Customer store located in an expansion or peripheral market (e.g., Mumbai Central, Outer Districts) outside the defined 'regions_served' of any existing distribution center in velochain network.",
+    "resolution": "1. Dispatch order via authorized Third-Party Logistics (3PL) cross-dock partner in the destination city. 2. Establish temporary transit routing extending delivery boundaries from nearest zone hub. 3. Update spatial routing configuration once regional partner facility is onboarded.",
+    "preventative_actions": "Set up territory boundary validation during Order Intake to automatically tag unserviced regions for 3PL forwarding rather than outright rejection."
+  },
+  {
+    "incident_id": "INC-002",
+    "title": "Network-Wide Stock Exhaustion - No surplus available in any warehouse",
+    "category": "Network Stock Depletion",
+    "symptoms": "Rebalancing agent fails to find donor warehouse; order marked 'no surplus available' despite customer priority.",
+    "root_cause": "High volume spike in demand (e.g., festive season run on PG-100G) where combined on-hand stock across all regional distribution centers falls below critical reserve thresholds.",
+    "resolution": "1. Trigger emergency production escalation at Kanpur primary manufacturing plant with priority packaging run. 2. Partial fulfillment split: immediately release 40% of requested allocation to maintain retailer presence while expediting factory direct truckload. 3. Notify sales regional head with accurate factory release ETA.",
+    "preventative_actions": "Implement dynamic safety stock buffers (minimum 25% surplus floor reserve) during peak forecast quarters."
+  },
+  {
+    "incident_id": "INC-003",
+    "title": "Manager Approval Bottleneck on High-Volume Transfers (>= 50,000 units)",
+    "category": "Guardrail & Governance",
+    "symptoms": "Rebalancing transfer status remains 'pending_manager_approval', stock transfer delayed, destination retail dispatch halted.",
+    "root_cause": "Guardrail Agent correctly enforces the 50,000 unit Human-In-The-Loop policy, but regional supply chain manager is unavailable or lacking automated mobile notification alerts.",
+    "resolution": "1. Send automated high-priority SMS/email escalation alert to designated secondary operations manager. 2. Fast-track approval if donor warehouse retains over 60% remaining stock post-transfer. 3. If approval pending > 4 hours, permit split transfer into two sub-50k tranches for critical tier customers.",
+    "preventative_actions": "Configure automated SLA timers (4-hour auto-escalation) and mobile approval webhooks for supply chain operations directors."
+  },
+  {
+    "incident_id": "INC-004",
+    "title": "Single Donor Warehouse Depletion from Repeated Rebalancing Requests",
+    "category": "Rebalancing Strain",
+    "symptoms": "Donor warehouse outgoing_orders_count spikes excessively while stock of high-demand SKUs drops near zero.",
+    "root_cause": "Rebalancing agent sequentially selects the first warehouse with available surplus, draining one central hub (e.g. WH-KNP-01) while other regional hubs remain untouched.",
+    "resolution": "1. Reroute upcoming transfer requests to secondary donor hubs with balanced stock reserves. 2. Cap maximum outgoing transfers from any single warehouse to 50% of its initial stock per cycle. 3. Schedule immediate intra-hub replenishment dispatch.",
+    "preventative_actions": "Incorporate load-balanced donor selection algorithm in Rebalancing Agent that penalizes hubs with high outgoing order counts."
+  },
+  {
+    "incident_id": "INC-005",
+    "title": "Institutional Order Priority Crowding-Out Commercial Retailers",
+    "category": "Priority & Allocation",
+    "symptoms": "Tier 1 Government/Institutional bulk orders consume 100% of available regional stock, leaving Tier 3 & Tier 4 retail stores completely dry.",
+    "root_cause": "Strict priority-tier allocation assigns entire batch inventory to large institutional buyers without reserving a minimum baseline for core retail distribution channels.",
+    "resolution": "1. Implement a 70/30 ring-fenced allocation policy: 70% to priority tiers, 30% ring-fenced for core high-frequency retail partners. 2. Fulfill institutional order balance via factory direct freight from production plant. 3. Communicate staggered delivery windows to institutional procurement officers.",
+    "preventative_actions": "Enforce retail channel safety quotas in Order Intake agent before global sorting."
+  },
+  {
+    "incident_id": "INC-006",
+    "title": "Inter-Warehouse Transit Corridor Blockage & Fleet Delay",
+    "category": "Logistics & Fleet",
+    "symptoms": "Auto-approved transfer created in system but physical transfer takes > 48 hours to arrive at receiving warehouse.",
+    "root_cause": "Highway congestion, extreme monsoon flooding, or interstate checkpoint delays between origin and destination distribution centers.",
+    "resolution": "1. Switch to secondary alternative highway corridors or regional container freight trains. 2. Enable interim direct customer dispatch from donor hub if distance to customer is acceptable. 3. Repackage local emergency inventory reserves.",
+    "preventative_actions": "Integrate weather & highway traffic alerts into transfer dispatch scheduling."
+  },
+  {
+    "incident_id": "INC-007",
+    "title": "SKU Specification Mismatch and Stock Cannibalization",
+    "category": "Catalog & Inventory",
+    "symptoms": "Order for PG-200G fails with insufficient stock while warehouse has extensive surplus of PG-100G.",
+    "root_cause": "Demand shift towards larger family pack sizes (PG-200G) faster than production replenishment schedule, while smaller packs sit idle.",
+    "resolution": "1. Offer retailer temporary bundle substitution (two units of PG-100G per PG-200G requested at parity cost). 2. Request manufacturing line changeover at factory to increase PG-200G run ratio. 3. Adjust regional stock mix at warehouse receiving.",
+    "preventative_actions": "Implement automated bundle conversion recommendations in Spatial Routing Agent when equivalent weight inventory is on-hand."
+  },
+  {
+    "incident_id": "INC-008",
+    "title": "Firestore Inventory Drift / System-to-Physical Pallet Discrepancy",
+    "category": "Data & Synchronization",
+    "symptoms": "Routing agent assigns order assuming stock exists, but warehouse floor reports empty bay.",
+    "root_cause": "System inventory record in Firestore was not updated following damaged goods write-off or previous unlogged manual floor adjustment.",
+    "resolution": "1. Conduct rapid barcode cycle count of discrepancy SKU. 2. Update Firestore document with actual physical count using sync script. 3. Reroute affected order immediately via Rebalancing Agent to nearest donor hub.",
+    "preventative_actions": "Enforce atomic Firestore transactions with write locks during order deduction and automated daily cycle counts."
+  },
+  {
+    "incident_id": "INC-009",
+    "title": "Retailer Sudden Order Spike (Bullwhip Speculative Hoarding)",
+    "category": "Demand Surge",
+    "symptoms": "A single retail store requests 10x its historical daily volume, triggering local stockout and massive rebalancing transfers.",
+    "root_cause": "Retailer anticipating price hike or local supply rumor, creating artificial demand surge that starves neighboring stores.",
+    "resolution": "1. Cap single-order quantity to 2.5x historical weekly moving average for Regular tier customers. 2. Require sales manager verification before processing anomalous quantities. 3. Release approved quota immediately, queue remainder for next distribution run.",
+    "preventative_actions": "Incorporate order anomaly detection filter in Order Intake agent to flag orders exceeding standard standard deviation."
+  },
+  {
+    "incident_id": "INC-010",
+    "title": "Warehouse Capacity Overflow & Incoming Transfer Gridlock",
+    "category": "Warehouse Operations",
+    "symptoms": "Receiving warehouse unable to accept incoming transfer due to lack of dock bay capacity or storage space.",
+    "root_cause": "Incoming transfer orders scheduled simultaneously without accounting for receiving warehouse staging bay constraints.",
+    "resolution": "1. Stagger delivery schedules with dedicated unloading time-slots. 2. Temporarily divert incoming trucks to nearby overflow staging warehouse. 3. Prioritize cross-docking pallets directly into waiting last-mile delivery vans.",
+    "preventative_actions": "Add warehouse bay capacity constraints into Rebalancing Agent transfer generation."
+  }
+]
