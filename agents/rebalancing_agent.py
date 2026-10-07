@@ -116,7 +116,17 @@ def rebalance_orders(
 
         current_stock = assigned_warehouse.get("stock_per_sku", {}).get(sku, 0)
         shortage = order.get("quantity_requested", 0) - current_stock
-
+        if shortage <= 0:
+            # An earlier transfer in this run already topped up this warehouse,
+            # so this order can now be filled from its own stock.
+            assigned_warehouse["stock_per_sku"][sku] = current_stock - order.get("quantity_requested", 0)
+            assigned_warehouse["incoming_orders_count"] = (
+                assigned_warehouse.get("incoming_orders_count", 0) + 1
+            )
+            order["routing_status"] = "fulfilled_directly"
+            if sync_to_firestore:
+                write_warehouse_to_firestore(assigned_warehouse)
+            continue
         surplus_warehouse = find_surplus_warehouse(sku, assigned_id, warehouses)
 
         if surplus_warehouse is None:

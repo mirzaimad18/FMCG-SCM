@@ -353,3 +353,16 @@ def test_end_to_end_pipeline_integration(sample_warehouses):
     assert len(result.transfers) == 1
     assert result.transfers[0]["sku"] == "PARLE-G-250G"
     assert result.transfers[0]["to_warehouse"] == "WH-KNP-01"
+def test_no_zero_quantity_transfer_when_earlier_transfer_covered_shortage(sample_warehouses):
+       orders = [
+           make_order(store_id="STORE-01", quantity_requested=150),
+           make_order(store_id="STORE-02", quantity_requested=150),
+       ]
+
+       result = rebalance_orders(orders, sample_warehouses, sync_to_firestore=False)
+
+       assert len(result.transfers) == 1
+       assert result.transfers[0]["quantity"] > 0
+       assert "transfer_id" not in result.orders[1]
+       assert result.orders[1]["routing_status"] == "fulfilled_directly"
+       assert get_wh(sample_warehouses, "WH-KNP-01")["stock_per_sku"]["PARLE-G-250G"] == 0
