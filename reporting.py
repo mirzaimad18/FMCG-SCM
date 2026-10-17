@@ -152,10 +152,10 @@ def _template_report(facts: Dict[str, Any]) -> str:
 def generate_report(facts: Dict[str, Any]) -> Tuple[str, str]:
     """Returns (report_text, source). source says whether Gemini or the template wrote it."""
     prompt = (
-        "You are a supply chain analyst for Parle-G. Write an executive report in simple, professional English "
+        "You are a supply chain analyst for Parle-G. Write an executive report in simple, professional English no need to mention date."
         "using ONLY the facts below. Do not invent numbers or reasons.\n"
         "Sections:\n"
-        "1) 📊 Summary of Pipeline Execution\n"
+        "1) Summary of Pipeline Execution\n"
         "2) 🎯 Key Decisions (Routing allocations & stock transfers)\n"
         "3) ⚠️ Problems, Risks & Unfulfilled Orders (Identify any unfulfilled orders and root causes)\n"
         "4) 💡 Recommended Next Actions for Operations\n"
@@ -390,4 +390,4 @@ def check_warehouses(
     try:
         return _gemini(prompt), f"Gemini ({MODEL})"
     except Exception as e:
-        return _template_warehouses_check(warehouses, before, stats), f"Template (Gemini unavailable: {e})"
+        return _template_warehouses_check(warehouses, before, stats), f"Template (Gemini unavailable: {e})"

@@ -57,6 +57,8 @@ streamlit run app.py
 ```
 Open http://localhost:8501 and click **Run pipeline** in the sidebar. The page shows summary numbers, the prioritized orders, the transfers with their Guardrail status, and live warehouse stock with incoming and outgoing order counts.
 
+The Gemini-enabled dashboard (`streamlit run dashboard_ai.py`) also provides Markdown and PDF downloads for executive reports, AI audits, QA reviews, and RAG remediation plans.
+
 > Note: each run moves real stock in Firestore, so results can change between runs. To reset, delete the `orders`, `warehouses` and `transfers` collections in the Firestore console and run the seed script again.
 
 ## How to Run Tests

@@ -46,6 +46,18 @@ def counts_df(warehouses):
     return pd.DataFrame(rows, columns=["Warehouse", "Incoming", "Outgoing"]).set_index("Warehouse")
 
 
+def pdf_download_button(report_text, title, file_name, key, summary_stats=None):
+    pdf_bytes = export_report_to_pdf(report_text, title=title, summary_stats=summary_stats)
+    st.download_button(
+        "⬇ Download PDF",
+        data=pdf_bytes,
+        file_name=file_name,
+        mime="application/pdf",
+        key=key,
+        width="stretch",
+    )
+
+
 st.title("📦 Parle-G Agentic AI Supply Chain Engine")
 st.caption("Order Intake → Spatial Routing → Rebalancing → Guardrail  |  Reports & Audits by Gemini on Vertex AI")
 
@@ -186,6 +198,10 @@ with t_orders:
             text, source = st.session_state["orders_ai_check"]
             st.markdown(text)
             st.caption(f"Audit source: {source}")
+            pdf_download_button(
+                text, "Orders Fulfillment Audit", "parle_g_orders_audit.pdf",
+                "dl_orders_audit_pdf", result.stats,
+            )
 
         with st.expander("🔄 Re-run Orders Audit"):
             if st.button("Re-audit Orders with Gemini", key="btn_check_orders"):
@@ -205,6 +221,10 @@ with t_tr:
             text, source = st.session_state["transfers_ai_check"]
             st.markdown(text)
             st.caption(f"Audit source: {source}")
+            pdf_download_button(
+                text, "Transfers and Guardrails Audit", "parle_g_transfers_audit.pdf",
+                "dl_transfers_audit_pdf", result.stats,
+            )
     else:
         tr = pd.DataFrame(result.transfers)
         a, b = st.columns(2)
@@ -220,6 +240,10 @@ with t_tr:
             text, source = st.session_state["transfers_ai_check"]
             st.markdown(text)
             st.caption(f"Audit source: {source}")
+            pdf_download_button(
+                text, "Transfers and Guardrails Audit", "parle_g_transfers_audit.pdf",
+                "dl_transfers_audit_pdf", result.stats,
+            )
 
         with st.expander("🔄 Re-run Transfers Audit"):
             if st.button("Re-audit Transfers with Gemini", key="btn_check_transfers"):
@@ -255,6 +279,10 @@ with t_wh:
             text, source = st.session_state["warehouses_ai_check"]
             st.markdown(text)
             st.caption(f"Audit source: {source}")
+            pdf_download_button(
+                text, "Warehouse Inventory Audit", "parle_g_warehouse_audit.pdf",
+                "dl_warehouse_audit_pdf", result.stats,
+            )
 
         with st.expander("🔄 Re-run Warehouses Audit"):
             if st.button("Re-audit Warehouses with Gemini", key="btn_check_warehouses"):
@@ -299,6 +327,10 @@ with t_exec:
             text, source = st.session_state["review"]
             st.markdown(text)
             st.caption(f"Written by: {source}")
+            pdf_download_button(
+                text, "Pipeline QA Review", "parle_g_pipeline_qa_review.pdf",
+                "dl_pipeline_qa_pdf", result.stats,
+            )
         else:
             if st.button("🤖 Ask Gemini to review this run", key="btn_review_checks"):
                 with st.spinner("Asking Gemini..."):
@@ -326,7 +358,23 @@ with t_ai:
                 text, source = st.session_state["report"]
                 st.markdown(text)
                 st.caption(f"Written by: {source}")
-                st.download_button("⬇ Download report (.md)", text, file_name="parle_g_pipeline_report.md", key="dl_report")
+                md_col, pdf_col = st.columns(2)
+                with md_col:
+                    st.download_button(
+                        "⬇ Download report (.md)",
+                        text,
+                        file_name="parle_g_pipeline_report.md",
+                        key="dl_report",
+                        width="stretch",
+                    )
+                with pdf_col:
+                    pdf_download_button(
+                        text,
+                        "Executive Supply Chain Report",
+                        "parle_g_pipeline_report.pdf",
+                        "dl_report_pdf",
+                        result.stats,
+                    )
             else:
                 st.info("Run the pipeline in the sidebar to generate the executive report automatically.")
 
@@ -375,12 +423,23 @@ with t_ai:
                 sol_text, sol_src = st.session_state["rag_solution"]
                 st.markdown(sol_text)
                 st.caption(f"Solution Source: {sol_src}")
-                st.download_button(
-                    "⬇ Download RAG Incident Remediation (.md)",
-                    sol_text,
-                    file_name="rag_incident_remediation.md",
-                    key="dl_rag_sol",
-                )
+                md_col, pdf_col = st.columns(2)
+                with md_col:
+                    st.download_button(
+                        "⬇ Download RAG remediation (.md)",
+                        sol_text,
+                        file_name="rag_incident_remediation.md",
+                        key="dl_rag_sol",
+                        width="stretch",
+                    )
+                with pdf_col:
+                    pdf_download_button(
+                        sol_text,
+                        "RAG Incident Remediation",
+                        "rag_incident_remediation.pdf",
+                        "dl_rag_sol_pdf",
+                        result.stats,
+                    )
 
             # Allow user to explore other failure modes or custom queries
             st.markdown("---")
