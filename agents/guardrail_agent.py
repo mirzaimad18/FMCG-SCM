@@ -1,4 +1,3 @@
-# Connects to the live Firestore database "velochaindb001" in project velochain-509610.
 """
 Guardrail Agent for Parle-G Supply Chain Engine.
 ================================================
@@ -55,12 +54,15 @@ A: In risk management and security compliance, automated systems must adopt a "f
 
 Q: How does this simulate Human-in-the-Loop (HITL)?
 A: Autonomous agents propose actions, but high-impact decisions are gated. The separate
-   approve_transfer() function simulates the asynchronous callback triggered when an authorized
-   human reviews and accepts the proposal on a dashboard.
-"""
+   approve_transfer() function applies an explicit manager decision. The local CLI exercises
+   this transition without connecting to Firestore.
+
+   Run this module directly to enter a transfer and exercise the approval flow locally without
+   writing to Firestore.
+   """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from google.cloud import firestore
 
@@ -106,7 +108,10 @@ def update_transfer_status_in_firestore(
         db.collection("transfers").document(transfer_id).set({"status": status}, merge=True)
         logger.info(f"Updated transfer '{transfer_id}' status to '{status}' in Firestore.")
     except Exception as e:
-        logger.warning(f"Could not update transfer '{transfer_id}' in Firestore: {e}")
+        logger.exception(f"Could not update transfer '{transfer_id}' in Firestore.")
+        raise RuntimeError(
+            f"Could not update transfer '{transfer_id}' in Firestore."
+        ) from e
 
 
 def evaluate_transfers(
@@ -151,24 +156,25 @@ def evaluate_transfers(
         quantity = transfer.get("quantity", 0)
 
         # Rule 2: Check quantity against threshold
-        # If quantity < 50,000 units: auto_approved immediately
         if quantity < threshold:
-            transfer["status"] = STATUS_AUTO_APPROVED
+            status = STATUS_AUTO_APPROVED
+        else:
+            status = STATUS_PENDING_APPROVAL
+
+        if sync_to_firestore and transfer_id != "Unknown":
+            update_transfer_status_in_firestore(transfer_id, status)
+
+        transfer["status"] = status
+        if status == STATUS_AUTO_APPROVED:
             logger.info(
                 f"Transfer '{transfer_id}': Quantity {quantity:,} < {threshold:,}. "
-                f"Status set to '{STATUS_AUTO_APPROVED}'."
+                f"Status set to '{status}'."
             )
-        # If quantity >= 50,000 units (inclusive of 50,000): pending_manager_approval
         else:
-            transfer["status"] = STATUS_PENDING_APPROVAL
             logger.warning(
                 f"Transfer '{transfer_id}': Quantity {quantity:,} >= {threshold:,}. "
-                f"Status set to '{STATUS_PENDING_APPROVAL}' (Manager approval required)."
+                f"Status set to '{status}' (Manager approval required)."
             )
-
-        # Write updated status back to matching document in Firestore
-        if sync_to_firestore and transfer_id != "Unknown":
-            update_transfer_status_in_firestore(transfer_id, transfer["status"])
 
     return transfers
 
@@ -201,6 +207,11 @@ def approve_transfer(
     bool
         True if the transfer was found and its status was changed to 'manager_approved'.
         False if the transfer was not found or was not in 'pending_manager_approval' status.
+
+    Raises:
+    -------
+    RuntimeError
+        If a requested Firestore status update fails.
     """
     for transfer in transfers_list:
         if transfer.get("transfer_id") == transfer_id:
@@ -208,13 +219,13 @@ def approve_transfer(
 
             # Only transfers currently pending manager approval can be approved
             if current_status == STATUS_PENDING_APPROVAL:
+                if sync_to_firestore:
+                    update_transfer_status_in_firestore(transfer_id, STATUS_MANAGER_APPROVED)
                 transfer["status"] = STATUS_MANAGER_APPROVED
                 logger.info(
                     f"Transfer '{transfer_id}' approved by manager. "
                     f"Status: '{current_status}' -> '{STATUS_MANAGER_APPROVED}'."
                 )
-                if sync_to_firestore:
-                    update_transfer_status_in_firestore(transfer_id, STATUS_MANAGER_APPROVED)
                 return True
             else:
                 logger.warning(
@@ -268,70 +279,74 @@ def print_guardrail_summary(transfers: List[Dict[str, Any]]) -> None:
     print("=" * 108 + "\n")
 
 
-def demo_guardrail() -> List[Dict[str, Any]]:
-    """
-    Self-contained demonstration for manual execution, testing, and viva evaluation.
-    Constructs sample transfers representing all key boundary conditions:
-    1. Small transfer (1,500 units) -> auto_approved
-    2. Boundary just under (49,999 units) -> auto_approved
-    3. Boundary exactly at (50,000 units) -> pending_manager_approval
-    4. Large transfer (75,000 units) -> pending_manager_approval
-    5. Simulates Human-in-the-Loop manager approval on the 50,000 unit transfer.
-    """
-    print("\n>>> Running Self-Contained Parle-G Guardrail Agent Demo...")
-
-    # Sample Transfers from Rebalancing Agent
-    mock_transfers = [
-        {
-            "transfer_id": "TR-0001",
-            "from_warehouse": "WH-WEST-01",
-            "to_warehouse": "WH-NORTH-01",
-            "sku": "PARLE-G-250G",
-            "quantity": 1500,
-            "status": "created",
-        },
-        {
-            "transfer_id": "TR-0002",
-            "from_warehouse": "WH-WEST-01",
-            "to_warehouse": "WH-NORTH-01",
-            "sku": "PARLE-G-100G",
-            "quantity": 49999,  # Just under 50,000 -> auto_approved
-            "status": "created",
-        },
-        {
-            "transfer_id": "TR-0003",
-            "from_warehouse": "WH-WEST-01",
-            "to_warehouse": "WH-SOUTH-01",
-            "sku": "PARLE-G-800G",
-            "quantity": 50000,  # Exactly 50,000 -> pending_manager_approval
-            "status": "created",
-        },
-        {
-            "transfer_id": "TR-0004",
-            "from_warehouse": "WH-NORTH-01",
-            "to_warehouse": "WH-WEST-01",
-            "sku": "PARLE-G-250G",
-            "quantity": 75000,  # Over 50,000 -> pending_manager_approval
-            "status": "created",
-        },
+def verify_threshold_behavior() -> None:
+    """Run local boundary checks for quantities immediately below, at, and above the limit."""
+    cases = [
+        (APPROVAL_THRESHOLD_QUANTITY - 1, STATUS_AUTO_APPROVED),
+        (APPROVAL_THRESHOLD_QUANTITY, STATUS_PENDING_APPROVAL),
+        (APPROVAL_THRESHOLD_QUANTITY + 1, STATUS_PENDING_APPROVAL),
     ]
+    transfers = [
+        {"transfer_id": f"BOUNDARY-{quantity}", "quantity": quantity}
+        for quantity, _ in cases
+    ]
+    evaluated = evaluate_transfers(transfers, sync_to_firestore=False)
 
-    # Step 1: Apply guardrail evaluation
-    print("\n[Step 1] Evaluating Transfer Requests against 50,000 Unit Threshold:")
-    evaluated_transfers = evaluate_transfers(mock_transfers, sync_to_firestore=False)
+    print(
+        f"Checking guardrail threshold boundary "
+        f"(approval limit: {APPROVAL_THRESHOLD_QUANTITY:,} units):"
+    )
+    for (quantity, expected_status), transfer in zip(cases, evaluated):
+        actual_status = transfer["status"]
+        if actual_status != expected_status:
+            raise AssertionError(
+                f"Quantity {quantity:,} units (limit {APPROVAL_THRESHOLD_QUANTITY:,}): "
+                f"expected {expected_status}, got {actual_status}"
+            )
+        print(
+            f"  PASS | Quantity: {quantity:>7,} units | "
+            f"Limit: {APPROVAL_THRESHOLD_QUANTITY:,} | "
+            f"Expected: {expected_status} | Actual: {actual_status}"
+        )
+
+
+def run_local_test() -> List[Dict[str, Any]]:
+    """Interactively test guardrail evaluation and manager approval without Firestore."""
+    print("Local guardrail test (no Firestore writes).")
+    transfer_id = input("Transfer ID: ").strip()
+    if not transfer_id:
+        raise ValueError("Transfer ID cannot be empty.")
+
+    try:
+        quantity = int(input("Transfer quantity in units: ").strip())
+    except ValueError as e:
+        raise ValueError("Transfer quantity must be an integer.") from e
+    if quantity < 0:
+        raise ValueError("Transfer quantity cannot be negative.")
+
+    transfers = [{"transfer_id": transfer_id, "quantity": quantity, "status": "created"}]
+    evaluated_transfers = evaluate_transfers(transfers, sync_to_firestore=False)
     print_guardrail_summary(evaluated_transfers)
 
-    # Step 2: Simulate Human-in-the-Loop Manager Approval on TR-0003
-    print("[Step 2] Simulating Human-in-the-Loop Manager Approval for TR-0003:")
-    success = approve_transfer("TR-0003", evaluated_transfers, sync_to_firestore=False)
-    print(f"Approval Result for TR-0003: {'SUCCESS' if success else 'FAILED'}")
-
-    # Step 3: Print updated summary showing manager approval
-    print("\n[Step 3] Updated Transfers Table After Manager Sign-Off:")
-    print_guardrail_summary(evaluated_transfers)
+    if evaluated_transfers[0]["status"] == STATUS_PENDING_APPROVAL:
+        decision = input("Manager approves this transfer? [y/N]: ").strip().lower()
+        if decision in {"y", "yes"}:
+            approved = approve_transfer(
+                transfer_id,
+                evaluated_transfers,
+                sync_to_firestore=False,
+            )
+            print(f"Manager approval: {'approved' if approved else 'not approved'}.")
+        print_guardrail_summary(evaluated_transfers)
 
     return evaluated_transfers
 
 
+def main() -> None:
+    """Verify the approval boundary, then allow a manual local transfer test."""
+    verify_threshold_behavior()
+    run_local_test()
+
+
 if __name__ == "__main__":
-    demo_guardrail()
+    main()

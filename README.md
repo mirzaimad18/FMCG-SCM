@@ -1,73 +1,112 @@
 # Parle-G Agentic AI Supply Chain Engine
 
-## Project Overview
-An agentic AI system that automates order prioritization and warehouse routing for Parle-G's retail orders. The engine takes incoming retail demand, ranks orders by customer priority, routes each order to the right warehouse, rebalances stock between warehouses when one runs short, and asks for manager approval on very large transfers.
+A deterministic, four-agent supply-chain pipeline that prioritizes retail orders, routes them to warehouses, creates stock-transfer requests for shortages, and applies approval guardrails. Gemini is used for explanations and reports, not for fulfillment decisions.
 
-## The 4 Agents
-1. **Order Intake Agent** - Gives each order a priority tier by customer type (Government > NGO > Loyal > Regular) and sorts the orders. Regular orders are ranked by how low their current stock is.
-2. **Spatial Routing Agent** - Matches each order to a warehouse by region. It first looks for an exact region match (`regions_served`), then falls back to a warehouse in the same zone (for example, "Kanpur Central" goes to a Kanpur warehouse). It then checks stock, deducts it, and counts the warehouse's incoming orders.
-3. **Rebalancing Agent** - If a warehouse has too little stock, it finds the other warehouse with the most stock of that SKU and creates a transfer. It also counts each warehouse's outgoing orders.
-4. **Guardrail Agent** - Checks every transfer. Transfers under 50,000 units are auto-approved. Transfers of 50,000 units or more wait for manager approval.
+## How the pipeline works
 
-All four agents are connected in `pipeline.py`.
+1. **Order Intake** assigns customer priority tiers: Government (1), NGO (2), Loyal (3), Regular (4), and unrecognized types (5). Regular orders are further ranked by low-stock urgency.
+2. **Spatial Routing** matches orders to a warehouse serving the exact region, then falls back to a warehouse in the same zone. It fulfills orders from available stock where possible.
+3. **Rebalancing** looks for stock at other warehouses to cover shortages and creates transfer requests.
+4. **Guardrail** auto-approves transfers below 50,000 units. Transfers of 50,000 units or more require manager approval.
 
-## Tech Stack
-- Python
-- Firestore (database `velochaindb001`)
-- Streamlit (dashboard)
-- pytest (testing)
-- Google Antigravity (development environment)
+The pipeline sorts orders by priority before allocating stock. It returns each order's final outcome, the evaluated transfers, and aggregate statistics. Core decisions are deterministic and rule-based.
 
-## Project Structure
+## Dashboards
+
+- `dashboard_ai.py` — AI-enabled dashboard with pipeline validation and execution logs, Gemini audits of orders/transfers/warehouses, an executive report, a QA review, and a historical-incident RAG playbook. Reports can be downloaded as Markdown or PDF.
+
+The AI dashboard tries Vertex AI for generated reports and audits; reporting helpers provide deterministic template fallbacks when Gemini is unavailable. Historical incident search uses Vertex AI embeddings when available and local TF-IDF similarity as a fallback.
+
+## Data and persistence
+
+Sample data is in `data/orders.json` (10 orders), `data/warehouses.json` (4 warehouses), and `data/historical_incidents.json` (10 incidents). `scripts/seed_firestore.py` uploads the sample orders and warehouses to Firestore.
+
+By default, `run_pipeline()` reads orders and warehouses from the Firestore database `velochaindb001`; the JSON files are seed/test data, not an automatic offline fallback. A live pipeline run updates warehouse stock and transfer records in Firestore. **Do not run it against production data unless you intend to change that data.**
+
+The seed script overwrites warehouse documents but appends orders with generated Firestore document IDs. Running it repeatedly will create duplicate order documents. Seed only when appropriate for your database.
+
+## Requirements
+
+- Python 3.10 or newer
+- Google Cloud CLI (`gcloud`) for authentication
+- A Google Cloud project with the Firestore database `velochaindb001`; the account used for Application Default Credentials must have access
+- For Gemini reporting and Vertex AI embeddings: Vertex AI API enabled and access to the configured models
+
+Install the dependencies declared in `requirements.txt`, then install the application dependencies used by the dashboards and AI features:
+
+```powershell
+python -m pip install -r requirements.txt
+python -m pip install streamlit pandas numpy scikit-learn google-genai
 ```
-agents/      the 4 agents
-data/        sample orders.json and warehouses.json
-scripts/     seed_firestore.py (loads sample data into Firestore)
-tests/       unit tests for every agent and the pipeline
-pipeline.py  runs all 4 agents end to end
-app.py       Streamlit dashboard
-```
 
-## How to Run
+`requirements.txt` includes Firestore, PDF export, pytest, and other project dependencies. Streamlit, pandas, NumPy, scikit-learn, and the Google Gen AI SDK are currently needed by the dashboard and/or RAG features but are not listed there.
 
-### 1. Install the requirements
-```
-pip install -r requirements.txt
-```
+## Configure Google Cloud
 
-### 2. Log in to Google Cloud
-```
+The Firestore agents use the `velochaindb001` database. Reporting and RAG default to project `velochain-509610`, location `us-central1`, and Gemini model `gemini-2.5-flash`. These AI settings can be overridden with `GCP_PROJECT`, `GCP_LOCATION`, and `GEMINI_MODEL`; RAG's embedding model can be changed with `EMBEDDING_MODEL` (default `text-embedding-004`).
+
+Authenticate and select the project used by Google Cloud clients:
+
+```powershell
 gcloud auth application-default login
+gcloud config set project velochain-509610
 ```
 
-### 3. Load the sample data into Firestore
-```
+Ensure the Firestore database and required APIs are enabled and accessible in your project. Gemini and embedding features require Vertex AI access. AI generation uses Vertex AI credentials; it does not require an API key in the source code.
+
+## Run
+
+To seed the Firestore database with the bundled sample records:
+
+```powershell
 python scripts/seed_firestore.py
 ```
-This loads 4 warehouses and 10 orders.
 
-### 4. Run the pipeline in the terminal
-```
+Run the pipeline in the terminal:
+
+```powershell
 python pipeline.py
 ```
 
-### 5. Run the dashboard
-```
-streamlit run app.py
-```
-Open http://localhost:8501 and click **Run pipeline** in the sidebar. The page shows summary numbers, the prioritized orders, the transfers with their Guardrail status, and live warehouse stock with incoming and outgoing order counts.
+Start the AI-enabled dashboard:
 
-The Gemini-enabled dashboard (`streamlit run dashboard_ai.py`) also provides Markdown and PDF downloads for executive reports, AI audits, QA reviews, and RAG remediation plans.
-
-> Note: each run moves real stock in Firestore, so results can change between runs. To reset, delete the `orders`, `warehouses` and `transfers` collections in the Firestore console and run the seed script again.
-
-## How to Run Tests
-Agent tests (safe, they do not touch Firestore):
-```
-pytest tests/test_order_intake_agent.py tests/test_spatial_routing_agent.py tests/test_rebalancing_agent.py tests/test_guardrail_agent.py -v
+```powershell
+streamlit run dashboard_ai.py
 ```
 
-Full pipeline tests (these use the real Firestore database and change stock):
+Open the URL printed by Streamlit (typically `http://localhost:8501`). The AI dashboard runs the pipeline, validations, AI audits, RAG issue diagnosis, and executive report as part of its **Run pipeline** action. Each run uses the live Firestore data and can change warehouse stock.
+
+## Test guardrail approval locally
+
+Run the guardrail agent's interactive test with a transfer ID and quantity you enter:
+
+```powershell
+python agents/guardrail_agent.py
 ```
-pytest tests/test_pipeline.py -v
+
+The entry point first checks the threshold boundaries automatically: 49,999 units must be auto-approved, while 50,000 and 50,001 units must require manager approval. It then prompts for an optional transfer ID and quantity to exercise the manual approval flow. These checks keep transfer data in memory and do not write to Firestore.
+
+## Tests
+
+Most agent and pipeline tests use in-memory data. To run the offline tests without running the default-data integration test that connects to Firestore:
+
+```powershell
+python -m pytest tests/test_order_intake_agent.py tests/test_spatial_routing_agent.py tests/test_rebalancing_agent.py tests/test_guardrail_agent.py tests/test_reporting.py tests/test_rag_engine.py tests/test_pipeline.py -k "not default_data_files" -v
+```
+
+The `test_pipeline_with_default_data_files` test in `tests/test_pipeline.py` currently calls `run_pipeline()` without supplying data, so it reads from and writes to the configured Firestore database. Run it only when you intentionally want to exercise the live Firestore integration.
+
+## Project structure
+
+```text
+agents/                    The four rule-based supply-chain agents
+data/                      Sample orders, warehouses, and historical incidents
+scripts/seed_firestore.py  Loads sample orders and warehouses into Firestore
+tests/                     Agent, pipeline, reporting, and RAG tests
+dashboard_ai.py            Gemini reporting, audits, validation, and RAG dashboard
+pipeline.py                End-to-end agent orchestration and summary metrics
+reporting.py               Validation, Gemini prompts, and report/audit fallbacks
+rag_engine.py              Historical incident retrieval and remediation generation
+pdf_export.py              PDF report export
+requirements.txt           Declared Python dependencies
 ```
