@@ -1,5 +1,5 @@
 """
-Unit tests for the Parle-G Guardrail Agent.
+Unit tests for the FMCG Supply Chain Guardrail Agent.
 ===========================================
 Tests cover:
 1. Transfer just under 50,000 units (e.g., 49,999) -> auto_approved.
@@ -35,7 +35,7 @@ def test_transfer_just_under_threshold_auto_approved():
             "transfer_id": "TR-0001",
             "from_warehouse": "WH-WEST-01",
             "to_warehouse": "WH-NORTH-01",
-            "sku": "PARLE-G-250G",
+            "sku": "FMCG-250G",
             "quantity": 49999,
             "status": "created",
         }
@@ -57,7 +57,7 @@ def test_transfer_just_over_threshold_pending_approval():
             "transfer_id": "TR-0002",
             "from_warehouse": "WH-WEST-01",
             "to_warehouse": "WH-NORTH-01",
-            "sku": "PARLE-G-250G",
+            "sku": "FMCG-250G",
             "quantity": 50001,
             "status": "created",
         }
@@ -79,7 +79,7 @@ def test_transfer_exactly_at_threshold_pending_approval():
             "transfer_id": "TR-0003",
             "from_warehouse": "WH-WEST-01",
             "to_warehouse": "WH-NORTH-01",
-            "sku": "PARLE-G-250G",
+            "sku": "FMCG-250G",
             "quantity": 50000,
             "status": "created",
         }
@@ -101,7 +101,7 @@ def test_approve_transfer_changes_status_to_manager_approved():
             "transfer_id": "TR-0004",
             "from_warehouse": "WH-WEST-01",
             "to_warehouse": "WH-NORTH-01",
-            "sku": "PARLE-G-800G",
+            "sku": "FMCG-800G",
             "quantity": 60000,
             "status": STATUS_PENDING_APPROVAL,
         }
@@ -169,16 +169,16 @@ def test_end_to_end_rebalancing_to_guardrail_integration():
             "warehouse_id": "WH-WEST-01",
             "region_served": "West",
             "stock_per_sku": {
-                "PARLE-G-250G": 100000,
-                "PARLE-G-100G": 20000,
+                "FMCG-250G": 100000,
+                "FMCG-100G": 20000,
             },
         },
         {
             "warehouse_id": "WH-NORTH-01",
             "region_served": "North",
             "stock_per_sku": {
-                "PARLE-G-250G": 0,
-                "PARLE-G-100G": 0,
+                "FMCG-250G": 0,
+                "FMCG-100G": 0,
             },
         },
     ]
@@ -189,14 +189,14 @@ def test_end_to_end_rebalancing_to_guardrail_integration():
             "store_id": "STORE-01",
             "routing_status": "insufficient_stock",
             "assigned_warehouse_id": "WH-NORTH-01",
-            "sku": "PARLE-G-100G",
+            "sku": "FMCG-100G",
             "quantity_requested": 1000,
         },
         {
             "store_id": "STORE-02",
             "routing_status": "insufficient_stock",
             "assigned_warehouse_id": "WH-NORTH-01",
-            "sku": "PARLE-G-250G",
+            "sku": "FMCG-250G",
             "quantity_requested": 60000,
         },
     ]

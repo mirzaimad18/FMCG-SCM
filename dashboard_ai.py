@@ -1,5 +1,5 @@
 """
-Parle-G Supply Chain Dashboard with LLM (Gemini on Vertex AI)
+FMCG Supply Chain Dashboard with LLM (Gemini on Vertex AI)
 =============================================================
 Tabs: Overview, Orders, Transfers, Warehouses, Pipeline Execution, AI Report.
 Does NOT change any agent. Start it with:
@@ -23,7 +23,7 @@ from rag_engine import (
 )
 from pdf_export import export_report_to_pdf
 
-st.set_page_config(page_title="Parle-G Supply Chain + AI", page_icon="📦", layout="wide")
+st.set_page_config(page_title="FMCG Supply Chain + AI", page_icon="📦", layout="wide")
 
 ICONS = {
     "fulfilled directly": "🟢 fulfilled directly",
@@ -58,7 +58,7 @@ def pdf_download_button(report_text, title, file_name, key, summary_stats=None):
     )
 
 
-st.title("📦 Parle-G Agentic AI Supply Chain Engine")
+st.title("📦 FMCG Supply Chain Management System")
 st.caption("Order Intake → Spatial Routing → Rebalancing → Guardrail  |  Reports & Audits by Gemini on Vertex AI")
 
 # ----------------------------------------------------------------- Pipeline Execution state
@@ -199,7 +199,7 @@ with t_orders:
             st.markdown(text)
             st.caption(f"Audit source: {source}")
             pdf_download_button(
-                text, "Orders Fulfillment Audit", "parle_g_orders_audit.pdf",
+                text, "Orders Fulfillment Audit", "fmcg_orders_audit.pdf",
                 "dl_orders_audit_pdf", result.stats,
             )
 
@@ -222,7 +222,7 @@ with t_tr:
             st.markdown(text)
             st.caption(f"Audit source: {source}")
             pdf_download_button(
-                text, "Transfers and Guardrails Audit", "parle_g_transfers_audit.pdf",
+                text, "Transfers and Guardrails Audit", "fmcg_transfers_audit.pdf",
                 "dl_transfers_audit_pdf", result.stats,
             )
     else:
@@ -241,7 +241,7 @@ with t_tr:
             st.markdown(text)
             st.caption(f"Audit source: {source}")
             pdf_download_button(
-                text, "Transfers and Guardrails Audit", "parle_g_transfers_audit.pdf",
+                text, "Transfers and Guardrails Audit", "fmcg_transfers_audit.pdf",
                 "dl_transfers_audit_pdf", result.stats,
             )
 
@@ -280,7 +280,7 @@ with t_wh:
             st.markdown(text)
             st.caption(f"Audit source: {source}")
             pdf_download_button(
-                text, "Warehouse Inventory Audit", "parle_g_warehouse_audit.pdf",
+                text, "Warehouse Inventory Audit", "fmcg_warehouse_audit.pdf",
                 "dl_warehouse_audit_pdf", result.stats,
             )
 
@@ -328,7 +328,7 @@ with t_exec:
             st.markdown(text)
             st.caption(f"Written by: {source}")
             pdf_download_button(
-                text, "Pipeline QA Review", "parle_g_pipeline_qa_review.pdf",
+                text, "Pipeline QA Review", "fmcg_pipeline_qa_review.pdf",
                 "dl_pipeline_qa_pdf", result.stats,
             )
         else:
@@ -363,7 +363,7 @@ with t_ai:
                     st.download_button(
                         "⬇ Download report (.md)",
                         text,
-                        file_name="parle_g_pipeline_report.md",
+                        file_name="fmcg_pipeline_report.md",
                         key="dl_report",
                         width="stretch",
                     )
@@ -371,7 +371,7 @@ with t_ai:
                     pdf_download_button(
                         text,
                         "Executive Supply Chain Report",
-                        "parle_g_pipeline_report.pdf",
+                        "fmcg_pipeline_report.pdf",
                         "dl_report_pdf",
                         result.stats,
                     )

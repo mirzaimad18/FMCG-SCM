@@ -1,5 +1,5 @@
 """
-Agents package for Parle-G Agentic AI Supply Chain Engine.
+Agents package for the FMCG Supply Chain Management System.
 """
 from agents import order_intake_agent
 from agents import spatial_routing_agent

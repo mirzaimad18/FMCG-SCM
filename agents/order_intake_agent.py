@@ -1,8 +1,8 @@
 # Connects to the live Firestore database "velochaindb001" in project velochain-509610.
 """
-Order Intake Agent for Parle-G Supply Chain Engine.
+Order Intake Agent for the FMCG Supply Chain Management System.
 ===================================================
-This module is Agent #1 in the Agentic AI Supply Chain Engine for Parle-G.
+This module is Agent #1 in the FMCG Supply Chain Management System.
 It reads incoming retail orders from the live Firestore database ("velochaindb001"
 in project velochain-509610, collection "orders") and deterministically assigns
 priority tiers and priority scores based on business rules.
@@ -351,7 +351,7 @@ def print_orders_table(orders: List[Dict[str, Any]]) -> None:
         return
 
     print("\n" + "=" * 92)
-    print("           PARLE-G AGENTIC AI SUPPLY CHAIN ENGINE: PRIORITIZED ORDERS")
+    print("           FMCG SUPPLY CHAIN MANAGEMENT SYSTEM: PRIORITIZED ORDERS")
     print("=" * 92)
     header = (
         f"{'Rank':<5} | {'Store ID':<14} | {'Customer Type':<14} | "
@@ -390,7 +390,7 @@ def main() -> List[Dict[str, Any]]:
     CLI execution entry point. Loads orders from data/orders.json,
     processes their priorities, prints the sorted table, and returns the list.
     """
-    print("Starting Parle-G Order Intake Agent...")
+    print("Starting FMCG Supply Chain Order Intake Agent...")
     try:
         raw_orders = load_orders()
     except Exception as e:

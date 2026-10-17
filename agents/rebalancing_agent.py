@@ -1,5 +1,5 @@
 """
-Rebalancing Agent for Parle-G Supply Chain Engine.
+Rebalancing Agent for the FMCG Supply Chain Management System.
 ===================================================
 Agent #3 in the Agentic AI Supply Chain Engine. Connects to the live
 Firestore database "velochaindb001" in project velochain-509610.

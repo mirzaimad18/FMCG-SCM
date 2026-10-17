@@ -1,5 +1,5 @@
 """
-Unit tests for the Parle-G Order Intake Agent.
+Unit tests for the FMCG Supply Chain Order Intake Agent.
 ==============================================
 Tests cover:
 1. One order per customer type (Government, NGO, Loyal, Regular).
@@ -35,7 +35,7 @@ def test_one_order_per_customer_type():
             "store_id": "STORE-REG",
             "region": "West",
             "customer_type": "Regular",
-            "sku": "PARLE-G-250G",
+            "sku": "FMCG-250G",
             "quantity_requested": 100,
             "order_timestamp": "2026-09-25T10:00:00Z",
             "current_stock_level": 30,
@@ -44,7 +44,7 @@ def test_one_order_per_customer_type():
             "store_id": "STORE-LOY",
             "region": "South",
             "customer_type": "Loyal",
-            "sku": "PARLE-G-250G",
+            "sku": "FMCG-250G",
             "quantity_requested": 200,
             "order_timestamp": "2026-09-25T09:00:00Z",
             "current_stock_level": 0,
@@ -53,7 +53,7 @@ def test_one_order_per_customer_type():
             "store_id": "STORE-GOV",
             "region": "North",
             "customer_type": "Government",
-            "sku": "PARLE-G-250G",
+            "sku": "FMCG-250G",
             "quantity_requested": 500,
             "order_timestamp": "2026-09-25T08:00:00Z",
             "current_stock_level": 0,
@@ -62,7 +62,7 @@ def test_one_order_per_customer_type():
             "store_id": "STORE-NGO",
             "region": "East",
             "customer_type": "NGO",
-            "sku": "PARLE-G-250G",
+            "sku": "FMCG-250G",
             "quantity_requested": 300,
             "order_timestamp": "2026-09-25T08:30:00Z",
             "current_stock_level": 0,
@@ -108,7 +108,7 @@ def test_regular_orders_different_stock_levels():
         "store_id": "STORE-URGENT",
         "region": "West",
         "customer_type": "Regular",
-        "sku": "PARLE-G-250G",
+        "sku": "FMCG-250G",
         "quantity_requested": 150,
         "order_timestamp": "2026-09-25T10:00:00Z",
         "current_stock_level": 5,  # Very low stock -> high urgency
@@ -117,7 +117,7 @@ def test_regular_orders_different_stock_levels():
         "store_id": "STORE-COMFORTABLE",
         "region": "East",
         "customer_type": "Regular",
-        "sku": "PARLE-G-250G",
+        "sku": "FMCG-250G",
         "quantity_requested": 150,
         "order_timestamp": "2026-09-25T08:00:00Z",  # Even though earlier, stock is high
         "current_stock_level": 40,  # Higher stock -> lower urgency
@@ -151,7 +151,7 @@ def test_regular_orders_identical_stock_levels_tiebreaker():
         "store_id": "STORE-EARLY",
         "region": "North",
         "customer_type": "Regular",
-        "sku": "PARLE-G-250G",
+        "sku": "FMCG-250G",
         "quantity_requested": 200,
         "order_timestamp": "2026-09-25T08:15:00Z",  # Earlier timestamp
         "current_stock_level": 15,
@@ -160,7 +160,7 @@ def test_regular_orders_identical_stock_levels_tiebreaker():
         "store_id": "STORE-LATE",
         "region": "South",
         "customer_type": "Regular",
-        "sku": "PARLE-G-250G",
+        "sku": "FMCG-250G",
         "quantity_requested": 200,
         "order_timestamp": "2026-09-25T11:45:00Z",  # Later timestamp
         "current_stock_level": 15,  # Identical stock level
@@ -191,7 +191,7 @@ def test_unrecognized_customer_type(caplog):
         "store_id": "STORE-REG-VALID",
         "region": "West",
         "customer_type": "Regular",
-        "sku": "PARLE-G-250G",
+        "sku": "FMCG-250G",
         "quantity_requested": 100,
         "order_timestamp": "2026-09-25T10:00:00Z",
         "current_stock_level": 10,
@@ -200,7 +200,7 @@ def test_unrecognized_customer_type(caplog):
         "store_id": "STORE-UNKNOWN-TYPE",
         "region": "North",
         "customer_type": "WholesaleClub",  # Unrecognized customer type
-        "sku": "PARLE-G-250G",
+        "sku": "FMCG-250G",
         "quantity_requested": 500,
         "order_timestamp": "2026-09-25T07:00:00Z",
         "current_stock_level": 5,
@@ -242,7 +242,7 @@ def test_load_orders_from_file(tmp_path):
     test_file = tmp_path / "test_orders.json"
     test_file.write_text(
         '[{"store_id": "S1", "region": "West", "customer_type": "Loyal", '
-        '"sku": "PARLE-G-100G", "quantity_requested": 50, '
+        '"sku": "FMCG-100G", "quantity_requested": 50, '
         '"order_timestamp": "2026-09-25T08:00:00Z", "current_stock_level": 0}]',
         encoding="utf-8",
     )

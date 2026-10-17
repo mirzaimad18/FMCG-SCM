@@ -1,5 +1,5 @@
 """
-Unit tests for the Parle-G Spatial Routing Agent.
+Unit tests for the FMCG Supply Chain Spatial Routing Agent.
 =================================================
 Tests cover:
 1. An order with an exact region match and sufficient stock
@@ -34,8 +34,8 @@ def sample_warehouses():
             "zone": "West",
             "regions_served": ["West Zone A"],
             "stock_per_sku": {
-                "PARLE-G-250G": 1000,
-                "PARLE-G-100G": 2000,
+                "FMCG-250G": 1000,
+                "FMCG-100G": 2000,
             },
             "incoming_orders_count": 0,
             "outgoing_orders_count": 0,
@@ -45,8 +45,8 @@ def sample_warehouses():
             "zone": "North",
             "regions_served": ["North Zone A"],
             "stock_per_sku": {
-                "PARLE-G-250G": 50,
-                "PARLE-G-100G": 300,
+                "FMCG-250G": 50,
+                "FMCG-100G": 300,
             },
             "incoming_orders_count": 0,
             "outgoing_orders_count": 0,
@@ -65,11 +65,11 @@ def test_order_exact_region_sufficient_stock(sample_warehouses):
     order = {
         "store_id": "STORE-W1",
         "region": "West Zone A",
-        "sku": "PARLE-G-250G",
+        "sku": "FMCG-250G",
         "quantity_requested": 200,
     }
 
-    initial_stock = sample_warehouses[0]["stock_per_sku"]["PARLE-G-250G"]
+    initial_stock = sample_warehouses[0]["stock_per_sku"]["FMCG-250G"]
     assert initial_stock == 1000
 
     results = route_orders(
@@ -80,7 +80,7 @@ def test_order_exact_region_sufficient_stock(sample_warehouses):
     assert routed["routing_status"] == "fulfilled_directly"
     assert routed["assigned_warehouse_id"] == "WH-WEST-01"
 
-    updated_stock = sample_warehouses[0]["stock_per_sku"]["PARLE-G-250G"]
+    updated_stock = sample_warehouses[0]["stock_per_sku"]["FMCG-250G"]
     assert updated_stock == 800
 
     assert sample_warehouses[0]["incoming_orders_count"] == 1
@@ -97,7 +97,7 @@ def test_order_region_no_warehouse_at_all(sample_warehouses):
     order = {
         "store_id": "STORE-E1",
         "region": "East Zone A",  # No warehouse has zone "East"
-        "sku": "PARLE-G-250G",
+        "sku": "FMCG-250G",
         "quantity_requested": 100,
     }
 
@@ -121,7 +121,7 @@ def test_order_warehouse_exists_insufficient_stock(sample_warehouses):
     order = {
         "store_id": "STORE-N1",
         "region": "North Zone A",
-        "sku": "PARLE-G-250G",
+        "sku": "FMCG-250G",
         "quantity_requested": 200,  # WH-NORTH-01 only has 50 units
     }
 
@@ -133,7 +133,7 @@ def test_order_warehouse_exists_insufficient_stock(sample_warehouses):
     assert routed["routing_status"] == "insufficient_stock"
     assert routed["assigned_warehouse_id"] == "WH-NORTH-01"
 
-    remaining_stock = sample_warehouses[1]["stock_per_sku"]["PARLE-G-250G"]
+    remaining_stock = sample_warehouses[1]["stock_per_sku"]["FMCG-250G"]
     assert remaining_stock == 50
     assert sample_warehouses[1]["incoming_orders_count"] == 0
 
@@ -149,11 +149,11 @@ def test_order_sku_not_in_warehouse_stock(sample_warehouses):
     order = {
         "store_id": "STORE-W2",
         "region": "West Zone A",
-        "sku": "PARLE-G-800G",  # WH-WEST-01 does not carry 800G
+        "sku": "FMCG-800G",  # WH-WEST-01 does not carry 800G
         "quantity_requested": 50,
     }
 
-    assert "PARLE-G-800G" not in sample_warehouses[0]["stock_per_sku"]
+    assert "FMCG-800G" not in sample_warehouses[0]["stock_per_sku"]
 
     results = route_orders(
         orders=[order], warehouses=sample_warehouses, sync_to_firestore=False
@@ -173,7 +173,7 @@ def test_preserves_order_intake_priority_fields(sample_warehouses):
         "store_id": "STORE-W1",
         "region": "West Zone A",
         "customer_type": "Government",
-        "sku": "PARLE-G-250G",
+        "sku": "FMCG-250G",
         "quantity_requested": 100,
         "priority_tier": 1,
         "priority_score": 1.0,
@@ -202,7 +202,7 @@ def test_zone_fallback_when_no_exact_region_match(sample_warehouses):
     order = {
         "store_id": "STORE-W3",
         "region": "West Central",  # not in regions_served, but zone "West" exists
-        "sku": "PARLE-G-250G",
+        "sku": "FMCG-250G",
         "quantity_requested": 100,
     }
 
@@ -224,13 +224,13 @@ def test_incoming_orders_count_increments_across_multiple_orders(sample_warehous
         {
             "store_id": "STORE-A",
             "region": "West Zone A",
-            "sku": "PARLE-G-100G",
+            "sku": "FMCG-100G",
             "quantity_requested": 100,
         },
         {
             "store_id": "STORE-B",
             "region": "West Zone A",
-            "sku": "PARLE-G-100G",
+            "sku": "FMCG-100G",
             "quantity_requested": 100,
         },
     ]

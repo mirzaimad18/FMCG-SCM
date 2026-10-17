@@ -1,8 +1,8 @@
 """
-End-to-End Supply Chain Engine Pipeline for Parle-G.
+End-to-End FMCG Supply Chain Management Pipeline.
 ====================================================
 This script connects all 4 autonomous agents into a unified, deterministic,
-multi-agent fulfillment pipeline for Parle-G retail orders:
+multi-agent fulfillment pipeline for FMCG retail orders:
 
 1. Agent #1: Order Intake Agent       (agents/order_intake_agent.py)
    - Assigns priority tiers & scores based on customer types & inventory urgency.
@@ -255,7 +255,7 @@ def print_pipeline_summary(
     and an overall statistics summary at the end.
     """
     print("\n" + "=" * 120)
-    print("                       PARLE-G AGENTIC AI SUPPLY CHAIN ENGINE: END-TO-END PIPELINE")
+    print("                       FMCG SUPPLY CHAIN MANAGEMENT SYSTEM: END-TO-END PIPELINE")
     print("=" * 120)
 
     # Order-by-order summary table

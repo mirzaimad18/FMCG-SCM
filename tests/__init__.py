@@ -1,3 +1,3 @@
 """
-Test package for Parle-G Agentic AI Supply Chain Engine.
+Test package for the FMCG Supply Chain Management System.
 """

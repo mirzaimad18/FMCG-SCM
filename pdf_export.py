@@ -1,5 +1,5 @@
 """
-PDF Export Utility for Parle-G Supply Chain Executive Reports.
+PDF Export Utility for FMCG Supply Chain Executive Reports.
 =============================================================
 Converts markdown reports and RAG incident resolutions into clean,
 professionally-styled PDF documents using fpdf2.
@@ -58,10 +58,10 @@ def clean_text_for_pdf(text: str) -> str:
     return text.encode("latin-1", "replace").decode("latin-1")
 
 
-class ParleGReportPDF(FPDF):
-    """Custom PDF layout with branded Parle-G header, footer, and styling."""
+class FMCGReportPDF(FPDF):
+    """Custom PDF layout with FMCG supply-chain header, footer, and styling."""
 
-    def __init__(self, title: str = "Parle-G Executive Report"):
+    def __init__(self, title: str = "FMCG Executive Report"):
         super().__init__(orientation="P", unit="mm", format="A4")
         self.doc_title = title
         self.set_auto_page_break(auto=True, margin=18)
@@ -76,7 +76,7 @@ class ParleGReportPDF(FPDF):
         self.set_font("Helvetica", "B", 13)
         self.set_text_color(30, 41, 59)
         self.set_y(12)
-        self.cell(0, 7, clean_text_for_pdf("PARLE-G AGENTIC AI SUPPLY CHAIN ENGINE"), ln=True)
+        self.cell(0, 7, clean_text_for_pdf("FMCG SUPPLY CHAIN MANAGEMENT SYSTEM"), ln=True)
 
         self.set_font("Helvetica", "", 9)
         self.set_text_color(100, 116, 139)
@@ -97,13 +97,13 @@ class ParleGReportPDF(FPDF):
 
 def export_report_to_pdf(
     report_text: str,
-    title: str = "Parle-G Executive Supply Chain Report",
+    title: str = "FMCG Executive Supply Chain Report",
     summary_stats: Optional[Dict[str, Any]] = None,
 ) -> bytes:
     """
     Parses a markdown report and renders it into a professionally styled PDF byte stream.
     """
-    pdf = ParleGReportPDF(title=title)
+    pdf = FMCGReportPDF(title=title)
     pdf.alias_nb_pages()
     pdf.add_page()
 

@@ -1,5 +1,5 @@
 """
-RAG (Retrieval-Augmented Generation) Engine for Parle-G Supply Chain.
+RAG (Retrieval-Augmented Generation) Engine for FMCG Supply Chain Management.
 =====================================================================
 Uses vector similarity search over historical supply chain incidents to
 diagnose unfulfilled orders, pipeline bottlenecks, and operational errors,
@@ -280,7 +280,7 @@ def generate_rag_solution(
     evidence_block = "\n".join(incidents_text)
 
     prompt = (
-        "You are the Chief Supply Chain Incident Response Commander for Parle-G.\n"
+        "You are the Chief Supply Chain Incident Response Commander for an FMCG company.\n"
         "A supply chain issue was detected during the latest fulfillment run. "
         "We searched our knowledge base of historical incidents and retrieved the most relevant verified incidents below.\n\n"
         f"CURRENT ISSUE CONTEXT:\n{issue_context}\n\n"

@@ -1,5 +1,5 @@
 """
-Unit and integration tests for the Parle-G End-to-End Pipeline.
+Unit and integration tests for the FMCG End-to-End Supply Chain Pipeline.
 ==============================================================
 Tests verify:
 1. Full pipeline execution on a curated set of sample orders covering all key customer
@@ -28,8 +28,8 @@ def mock_pipeline_environment():
             "zone": "West",
             "regions_served": ["West"],
             "stock_per_sku": {
-                "PARLE-G-250G": 90000,  # Plentiful surplus to satisfy a 50k+ transfer
-                "PARLE-G-100G": 2000,
+                "FMCG-250G": 90000,  # Plentiful surplus to satisfy a 50k+ transfer
+                "FMCG-100G": 2000,
             },
         },
         {
@@ -37,8 +37,8 @@ def mock_pipeline_environment():
             "zone": "North",
             "regions_served": ["North"],
             "stock_per_sku": {
-                "PARLE-G-250G": 100,    # Limited stock; causes shortages for larger requests
-                "PARLE-G-100G": 1000,
+                "FMCG-250G": 100,    # Limited stock; causes shortages for larger requests
+                "FMCG-100G": 1000,
             },
         },
         {
@@ -46,7 +46,7 @@ def mock_pipeline_environment():
             "zone": "South",
             "regions_served": ["South"],
             "stock_per_sku": {
-                "PARLE-G-800G": 500,
+                "FMCG-800G": 500,
             },
         },
     
@@ -58,7 +58,7 @@ def mock_pipeline_environment():
             "store_id": "STORE-GOV-01",
             "region": "West",
             "customer_type": "Government",
-            "sku": "PARLE-G-100G",
+            "sku": "FMCG-100G",
             "quantity_requested": 500,
             "order_timestamp": "2026-09-25T08:00:00Z",
             "current_stock_level": 10,
@@ -68,7 +68,7 @@ def mock_pipeline_environment():
             "store_id": "STORE-NGO-02",
             "region": "North",
             "customer_type": "NGO",
-            "sku": "PARLE-G-100G",
+            "sku": "FMCG-100G",
             "quantity_requested": 400,
             "order_timestamp": "2026-09-25T08:15:00Z",
             "current_stock_level": 5,
@@ -80,7 +80,7 @@ def mock_pipeline_environment():
             "store_id": "STORE-LOY-03",
             "region": "North",
             "customer_type": "Loyal",
-            "sku": "PARLE-G-250G",
+            "sku": "FMCG-250G",
             "quantity_requested": 200,
             "order_timestamp": "2026-09-25T08:30:00Z",
             "current_stock_level": 0,
@@ -91,7 +91,7 @@ def mock_pipeline_environment():
             "store_id": "STORE-REG-04",
             "region": "North",
             "customer_type": "Regular",
-            "sku": "PARLE-G-250G",
+            "sku": "FMCG-250G",
             "quantity_requested": 55000,
             "order_timestamp": "2026-09-25T09:00:00Z",
             "current_stock_level": 0,
@@ -101,7 +101,7 @@ def mock_pipeline_environment():
             "store_id": "STORE-REG-05",
             "region": "East",
             "customer_type": "Regular",
-            "sku": "PARLE-G-100G",
+            "sku": "FMCG-100G",
             "quantity_requested": 50,
             "order_timestamp": "2026-09-25T09:15:00Z",
             "current_stock_level": 20,
@@ -181,7 +181,7 @@ def test_priority_sorting_allocates_stock_to_higher_tier_first():
             "zone": "North",
             "regions_served": ["North"],
             "stock_per_sku": {
-                "PARLE-G-100G": 300,  # Only 300 units available
+                "FMCG-100G": 300,  # Only 300 units available
             },
         },
         {
@@ -189,7 +189,7 @@ def test_priority_sorting_allocates_stock_to_higher_tier_first():
             "zone": "West",
             "regions_served": ["West"],
             "stock_per_sku": {
-                "PARLE-G-100G": 500,  # Surplus for rebalancing
+                "FMCG-100G": 500,  # Surplus for rebalancing
             },
         },
     ]
@@ -201,7 +201,7 @@ def test_priority_sorting_allocates_stock_to_higher_tier_first():
             "store_id": "STORE-REGULAR",
             "region": "North",
             "customer_type": "Regular",
-            "sku": "PARLE-G-100G",
+            "sku": "FMCG-100G",
             "quantity_requested": 300,
             "order_timestamp": "2026-09-25T07:00:00Z",  # Earlier timestamp
             "current_stock_level": 5,
@@ -210,7 +210,7 @@ def test_priority_sorting_allocates_stock_to_higher_tier_first():
             "store_id": "STORE-NGO",
             "region": "North",
             "customer_type": "NGO",
-            "sku": "PARLE-G-100G",
+            "sku": "FMCG-100G",
             "quantity_requested": 300,
             "order_timestamp": "2026-09-25T09:00:00Z",  # Later timestamp
             "current_stock_level": 0,

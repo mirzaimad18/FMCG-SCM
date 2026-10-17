@@ -1,5 +1,5 @@
 """
-Spatial Routing Agent for Parle-G Supply Chain Engine.
+Spatial Routing Agent for the FMCG Supply Chain Management System.
 =======================================================
 Agent #2 in the Agentic AI Supply Chain Engine. Connects to the live
 Firestore database "velochaindb001" in project velochain-509610.

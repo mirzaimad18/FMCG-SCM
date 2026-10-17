@@ -1,5 +1,5 @@
 """
-Unit tests for the Parle-G Rebalancing Agent (new version).
+Unit tests for the FMCG Supply Chain Rebalancing Agent.
 ===========================================================
 Rules covered:
 1. Only orders with routing_status == "insufficient_stock" are processed;
@@ -34,8 +34,8 @@ def sample_warehouses():
             "zone": "Lucknow",
             "regions_served": ["Lucknow Central", "Lucknow North"],
             "stock_per_sku": {
-                "PARLE-G-250G": 1000,
-                "PARLE-G-100G": 3000,
+                "FMCG-250G": 1000,
+                "FMCG-100G": 3000,
             },
             "incoming_orders_count": 0,
             "outgoing_orders_count": 0,
@@ -45,8 +45,8 @@ def sample_warehouses():
             "zone": "Kanpur",
             "regions_served": ["Kanpur Central", "Kanpur East"],
             "stock_per_sku": {
-                "PARLE-G-250G": 50,
-                "PARLE-G-100G": 200,
+                "FMCG-250G": 50,
+                "FMCG-100G": 200,
             },
             "incoming_orders_count": 0,
             "outgoing_orders_count": 0,
@@ -56,8 +56,8 @@ def sample_warehouses():
             "zone": "Delhi",
             "regions_served": ["Delhi South", "Delhi West"],
             "stock_per_sku": {
-                "PARLE-G-250G": 500,
-                "PARLE-G-800G": 100,
+                "FMCG-250G": 500,
+                "FMCG-800G": 100,
             },
             "incoming_orders_count": 0,
             "outgoing_orders_count": 0,
@@ -74,7 +74,7 @@ def make_order(**overrides):
     """Builds an 'insufficient_stock' order for Kanpur. Override any field."""
     order = {
         "store_id": "STORE-K1",
-        "sku": "PARLE-G-250G",
+        "sku": "FMCG-250G",
         "quantity_requested": 150,
         "assigned_warehouse_id": "WH-KNP-01",
         "routing_status": "insufficient_stock",
@@ -90,14 +90,14 @@ def test_rule_1_unaffected_orders_passed_through_unchanged(sample_warehouses):
             "store_id": "STORE-01",
             "routing_status": "fulfilled_directly",
             "assigned_warehouse_id": "WH-LKO-01",
-            "sku": "PARLE-G-250G",
+            "sku": "FMCG-250G",
             "quantity_requested": 100,
         },
         {
             "store_id": "STORE-02",
             "routing_status": "no_warehouse_for_region",
             "assigned_warehouse_id": None,
-            "sku": "PARLE-G-250G",
+            "sku": "FMCG-250G",
             "quantity_requested": 100,
         },
     ]
@@ -129,7 +129,7 @@ def test_rule_2_and_5_shortage_and_transfer_creation(sample_warehouses):
     assert transfer["transfer_id"] == "TR-0001"
     assert transfer["from_warehouse"] == "WH-LKO-01"
     assert transfer["to_warehouse"] == "WH-KNP-01"
-    assert transfer["sku"] == "PARLE-G-250G"
+    assert transfer["sku"] == "FMCG-250G"
     assert transfer["quantity"] == 100
     assert transfer["status"] == "created"
 
@@ -150,8 +150,8 @@ def test_rule_3_selects_warehouse_with_most_stock(sample_warehouses):
 # ------------------------------------------------------------ Rule 4
 def test_rule_4_no_surplus_available(sample_warehouses):
     """No other warehouse has any 800G -> no transfer."""
-    get_wh(sample_warehouses, "WH-DEL-01")["stock_per_sku"]["PARLE-G-800G"] = 0
-    order = make_order(sku="PARLE-G-800G", quantity_requested=50)
+    get_wh(sample_warehouses, "WH-DEL-01")["stock_per_sku"]["FMCG-800G"] = 0
+    order = make_order(sku="FMCG-800G", quantity_requested=50)
 
     result = rebalance_orders([order], sample_warehouses, sync_to_firestore=False)
 
@@ -173,7 +173,7 @@ def test_unknown_assigned_warehouse_is_marked_no_surplus(sample_warehouses):
 # ------------------------------------------------------------ Rule 5
 def test_rule_5_partial_surplus_capped_at_available_stock(sample_warehouses):
     """KNP has no 800G, needs 150. Only DEL has 800G (100). Transfer 100."""
-    order = make_order(sku="PARLE-G-800G", quantity_requested=150)
+    order = make_order(sku="FMCG-800G", quantity_requested=150)
 
     result = rebalance_orders([order], sample_warehouses, sync_to_firestore=False)
 
@@ -188,13 +188,13 @@ def test_rule_5_partial_surplus_capped_at_available_stock(sample_warehouses):
 def test_rule_6_inventory_levels_updated(sample_warehouses):
     lko = get_wh(sample_warehouses, "WH-LKO-01")
     knp = get_wh(sample_warehouses, "WH-KNP-01")
-    assert lko["stock_per_sku"]["PARLE-G-250G"] == 1000
-    assert knp["stock_per_sku"]["PARLE-G-250G"] == 50
+    assert lko["stock_per_sku"]["FMCG-250G"] == 1000
+    assert knp["stock_per_sku"]["FMCG-250G"] == 50
 
     rebalance_orders([make_order()], sample_warehouses, sync_to_firestore=False)
 
-    assert lko["stock_per_sku"]["PARLE-G-250G"] == 900   # 1000 - 100
-    assert knp["stock_per_sku"]["PARLE-G-250G"] == 150   # 50 + 100
+    assert lko["stock_per_sku"]["FMCG-250G"] == 900   # 1000 - 100
+    assert knp["stock_per_sku"]["FMCG-250G"] == 150   # 50 + 100
 
 
 # ------------------------------------------------------------ Rule 7
@@ -205,7 +205,7 @@ def test_sequential_orders_update_stock_and_increment_ids(sample_warehouses):
         # DEL has no 100G, needs 500 -> 500 comes from LKO (3000 -> 2500)
         make_order(
             store_id="STORE-02",
-            sku="PARLE-G-100G",
+            sku="FMCG-100G",
             quantity_requested=500,
             assigned_warehouse_id="WH-DEL-01",
         ),
@@ -220,8 +220,8 @@ def test_sequential_orders_update_stock_and_increment_ids(sample_warehouses):
     assert result.orders[1]["transfer_id"] == "TR-0002"
 
     lko = get_wh(sample_warehouses, "WH-LKO-01")
-    assert lko["stock_per_sku"]["PARLE-G-250G"] == 950
-    assert lko["stock_per_sku"]["PARLE-G-100G"] == 2500
+    assert lko["stock_per_sku"]["FMCG-250G"] == 950
+    assert lko["stock_per_sku"]["FMCG-100G"] == 2500
 
 
 # ------------------------------------------------------------ Rule 8
@@ -276,8 +276,8 @@ def test_order_counts_add_up_across_multiple_transfers(sample_warehouses):
 
 
 def test_order_counts_unchanged_when_no_transfer(sample_warehouses):
-    get_wh(sample_warehouses, "WH-DEL-01")["stock_per_sku"]["PARLE-G-800G"] = 0
-    order = make_order(sku="PARLE-G-800G", quantity_requested=50)
+    get_wh(sample_warehouses, "WH-DEL-01")["stock_per_sku"]["FMCG-800G"] = 0
+    order = make_order(sku="FMCG-800G", quantity_requested=50)
 
     rebalance_orders([order], sample_warehouses, sync_to_firestore=False)
 
@@ -331,13 +331,13 @@ def test_end_to_end_pipeline_integration(sample_warehouses):
         {
             "store_id": "STORE-LKO",
             "region": "Lucknow Central",
-            "sku": "PARLE-G-250G",
+            "sku": "FMCG-250G",
             "quantity_requested": 200,   # LKO has 1000 -> fulfilled directly
         },
         {
             "store_id": "STORE-KNP",
             "region": "Kanpur Central",
-            "sku": "PARLE-G-250G",
+            "sku": "FMCG-250G",
             "quantity_requested": 200,   # KNP has 50 -> insufficient stock
         },
     ]
@@ -351,7 +351,7 @@ def test_end_to_end_pipeline_integration(sample_warehouses):
     assert "rebalancing_status" not in result.orders[0]
     assert result.orders[1]["rebalancing_status"] == "transfer_created"
     assert len(result.transfers) == 1
-    assert result.transfers[0]["sku"] == "PARLE-G-250G"
+    assert result.transfers[0]["sku"] == "FMCG-250G"
     assert result.transfers[0]["to_warehouse"] == "WH-KNP-01"
 def test_no_zero_quantity_transfer_when_earlier_transfer_covered_shortage(sample_warehouses):
        orders = [
@@ -365,4 +365,4 @@ def test_no_zero_quantity_transfer_when_earlier_transfer_covered_shortage(sample
        assert result.transfers[0]["quantity"] > 0
        assert "transfer_id" not in result.orders[1]
        assert result.orders[1]["routing_status"] == "fulfilled_directly"
-       assert get_wh(sample_warehouses, "WH-KNP-01")["stock_per_sku"]["PARLE-G-250G"] == 0
+       assert get_wh(sample_warehouses, "WH-KNP-01")["stock_per_sku"]["FMCG-250G"] == 0
